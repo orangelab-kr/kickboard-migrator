@@ -1,0 +1,13 @@
+{
+  "name": "kickboard-migrator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "dotenv node ."
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "mqtt": "^4.2.6"
+  }
+}
