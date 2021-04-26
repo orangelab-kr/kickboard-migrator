@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'kickboard-migrator',
-      script: './index.js',
+      script: './src/index.js',
       env: {
         LEGACY_URL: 'mqtt://write_your_legacy_mqtt_url',
         LEGACY_USERNAME: 'write_your_legacy_mqtt_username',
