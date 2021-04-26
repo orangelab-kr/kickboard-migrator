@@ -1,4 +1,6 @@
 const mqtt = require('mqtt');
+const { logger } = require('./logger');
+const { webhook } = require('./webhook');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const legacy = mqtt.connect(String(process.env.LEGACY_URL), {
@@ -12,38 +14,38 @@ const target = mqtt.connect(String(process.env.TARGET_URL), {
 });
 
 async function main() {
-  console.log(`[SETTING] 기존 주소: ${String(process.env.LEGACY_URL)}`);
-  console.log(`[SETTING] 기존 사용자: ${String(process.env.LEGACY_USERNAME)}`);
-  console.log(
+  logger.info(`[SETTING] 기존 주소: ${String(process.env.LEGACY_URL)}`);
+  logger.info(`[SETTING] 기존 사용자: ${String(process.env.LEGACY_USERNAME)}`);
+  logger.info(
     `[SETTING] 기존 비밀번호: ${String(process.env.LEGACY_PASSWORD)}`,
   );
 
-  console.log(`[SETTING] 신규 주소: ${String(process.env.TARGET_URL)}`);
-  console.log(`[SETTING] 신규 사용자: ${String(process.env.TARGET_USERNAME)}`);
-  console.log(
+  logger.info(`[SETTING] 신규 주소: ${String(process.env.TARGET_URL)}`);
+  logger.info(`[SETTING] 신규 사용자: ${String(process.env.TARGET_USERNAME)}`);
+  logger.info(
     `[SETTING] 신규 비밀번호: ${String(process.env.TARGET_PASSWORD)}`,
   );
 
-  console.log(`[SETTING] 설정 주소: ${String(process.env.NEW_ADDRESS)}`);
-  console.log(`[SETTING] 설정 사용자: ${String(process.env.NEW_USERNAME)}`);
-  console.log(`[SETTING] 설정 비밀번호: ${String(process.env.NEW_PASSWORD)}`);
+  logger.info(`[SETTING] 설정 주소: ${String(process.env.NEW_ADDRESS)}`);
+  logger.info(`[SETTING] 설정 사용자: ${String(process.env.NEW_USERNAME)}`);
+  logger.info(`[SETTING] 설정 비밀번호: ${String(process.env.NEW_PASSWORD)}`);
 
   legacy.on('connect', () => {
     legacy.subscribe('data/#');
-    console.log(`[Legacy] 서버와 연결되었습니다.`);
+    logger.info(`[LEGACY] 서버와 연결되었습니다.`);
   });
 
   legacy.on('error', (err) => {
-    console.log(`[Legacy] 오류가 발생하였습니다. ${err.message}`);
+    logger.info(`[LEGACY] 오류가 발생하였습니다. ${err.message}`);
   });
 
   target.on('connect', () => {
     target.subscribe('data/#');
-    console.log(`[Target] 서버와 연결되었습니다.`);
+    logger.info(`[TARGET] 서버와 연결되었습니다.`);
   });
 
   target.on('error', (err) => {
-    console.log(`[Target] 오류가 발생하였습니다. ${err.message}`);
+    logger.info(`[TARGET] 오류가 발생하였습니다. ${err.message}`);
   });
 
   legacy.on('message', async (topic, data) => {
@@ -53,13 +55,15 @@ async function main() {
 
     try {
       await sleep(1000);
-      console.log(`[${kickboardId}] 킥보드 이전을 시작합니다.`);
+      logger.info(`[${kickboardId}] 킥보드 이전을 시작합니다.`);
       await setCredentials(kickboardId);
-      console.log(`[${kickboardId}] 신규 서버에서 응답을 대기합니다.`);
+      logger.info(`[${kickboardId}] 신규 서버에서 응답을 대기합니다.`);
       await waitForConnect(kickboardId);
-      console.log(`[${kickboardId}] 킥보드 이전을 완료하였습니다.`);
+      logger.info(`[${kickboardId}] 킥보드 이전을 완료하였습니다.`);
+      await webhook.send(`[${kickboardId}] 킥보드 이전을 완료하였습니다.`);
     } catch (err) {
-      console.error(`[${kickboardId}] 킥보드 이전을 실패했습니다.`);
+      logger.error(`[${kickboardId}] 킥보드 이전을 실패했습니다.`);
+      await webhook.send(`[${kickboardId}] 킥보드 이전을 실패했습니다.`);
     }
   });
 }
@@ -74,7 +78,7 @@ async function setCredentials(kickboardId) {
       await setConfig(kickboardId, 'mqpass', String(process.env.NEW_PASSWORD));
       await sleep(1000);
     } catch (err) {
-      console.warn(`[${kickboardId}] 킥보드 응답이 없습니다. 재시도합니다.`);
+      logger.warn(`[${kickboardId}] 킥보드 응답이 없습니다. 재시도합니다.`);
     }
   }
 
@@ -86,7 +90,7 @@ async function setConfig(kickboardId, key, value, tried = false) {
   legacy.publish(kickboardId, JSON.stringify(cmd));
   const config = await waitForConfig(kickboardId);
   if (config[key] === value) {
-    console.log(`[${kickboardId}] ${key} 값 -> ${value} 변경 성공`);
+    logger.info(`[${kickboardId}] ${key} 값 -> ${value} 변경 성공`);
     return;
   }
 

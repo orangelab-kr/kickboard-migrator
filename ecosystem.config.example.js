@@ -13,6 +13,8 @@ module.exports = {
         NEW_ADDRESS: 'write_your_new_mqtt_address',
         NEW_USERNAME: 'write_your_new_mqtt_username',
         NEW_PASSWORD: 'write_your_new_mqtt_password',
+        SLACK_WEBHOOK_URL:
+          'https://hooks.slack.com/services/WRITE_YOUR_WEBHOOK',
       },
     },
   ],
