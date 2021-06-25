@@ -12,9 +12,9 @@ exports.logger = winston.createLogger({
         .colorize()
         .colorize(
           obj.level,
-          `[${obj.timestamp} ${obj.level.toUpperCase()}]: ${obj.message}`,
-        ),
-    ),
+          `[${obj.timestamp} ${obj.level.toUpperCase()}]: ${obj.message}`
+        )
+    )
   ),
   transports: [new winston.transports.Console()],
 });

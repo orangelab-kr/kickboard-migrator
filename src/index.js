@@ -17,13 +17,13 @@ async function main() {
   logger.info(`[SETTING] 기존 주소: ${String(process.env.LEGACY_URL)}`);
   logger.info(`[SETTING] 기존 사용자: ${String(process.env.LEGACY_USERNAME)}`);
   logger.info(
-    `[SETTING] 기존 비밀번호: ${String(process.env.LEGACY_PASSWORD)}`,
+    `[SETTING] 기존 비밀번호: ${String(process.env.LEGACY_PASSWORD)}`
   );
 
   logger.info(`[SETTING] 신규 주소: ${String(process.env.TARGET_URL)}`);
   logger.info(`[SETTING] 신규 사용자: ${String(process.env.TARGET_USERNAME)}`);
   logger.info(
-    `[SETTING] 신규 비밀번호: ${String(process.env.TARGET_PASSWORD)}`,
+    `[SETTING] 신규 비밀번호: ${String(process.env.TARGET_PASSWORD)}`
   );
 
   logger.info(`[SETTING] 설정 주소: ${String(process.env.NEW_ADDRESS)}`);
@@ -55,15 +55,29 @@ async function main() {
 
     try {
       await sleep(1000);
-      logger.info(`[${kickboardId}] 킥보드 이전을 시작합니다.`);
+      logger.info(
+        `[${kickboardId}] 킥보드 이전을 시작합니다. (${obj.la},${obj.lo})`
+      );
+
+      await webhook.send(
+        `[${kickboardId}] 킥보드 이전을 시작합니다. https://map.kakao.com/link/to/${kickboardId},${obj.la},${obj.lo}`
+      );
+
       await setCredentials(kickboardId);
       logger.info(`[${kickboardId}] 신규 서버에서 응답을 대기합니다.`);
+      await webhook.send(`[${kickboardId}] 신규 서버에서 응답을 대기합니다.`);
+
       await waitForConnect(kickboardId);
       logger.info(`[${kickboardId}] 킥보드 이전을 완료하였습니다.`);
       await webhook.send(`[${kickboardId}] 킥보드 이전을 완료하였습니다.`);
     } catch (err) {
-      logger.error(`[${kickboardId}] 킥보드 이전을 실패했습니다.`);
-      await webhook.send(`[${kickboardId}] 킥보드 이전을 실패했습니다.`);
+      logger.error(
+        `[${kickboardId}] 킥보드 이전을 실패했습니다.  ${err.message}`
+      );
+
+      await webhook.send(
+        `[${kickboardId}] 킥보드 이전을 실패했습니다. ${err.message}`
+      );
     }
   });
 }
@@ -96,7 +110,7 @@ async function setConfig(kickboardId, key, value, tried = false) {
 
   if (tried) {
     throw new Error(
-      `[${kickboardId}] ${key} 값 ${config[key]} -> ${value} 변경 실패`,
+      `[${kickboardId}] ${key} 값 ${config[key]} -> ${value} 변경 실패`
     );
   }
 
@@ -113,7 +127,7 @@ function waitForConfig(kickboardId, ms = 10000) {
   return new Promise((resolve, reject) => {
     setTimeout(
       () => reject('Wait for connect timed out after ' + ms + ' ms'),
-      ms,
+      ms
     );
 
     const func = (topic, data) => {
@@ -135,7 +149,7 @@ function waitForConnect(kickboardId, ms = 300000) {
   return new Promise((resolve, reject) => {
     setTimeout(
       () => reject('Wait for connect timed out after ' + ms + ' ms'),
-      ms,
+      ms
     );
 
     const func = (topic) => {
